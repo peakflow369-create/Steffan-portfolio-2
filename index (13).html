@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steffan | AI &amp; Video Systems</title>
+<meta name="description" content="AI Automation Specialist, Full-Stack Developer & AI UGC Creator.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<script>
+tailwind.config = { theme: { extend: {
+  fontFamily: { sans:['Bricolage Grotesque','system-ui','sans-serif'], mono:['JetBrains Mono','ui-monospace','monospace'] },
+  colors: { bg:'#09090b', line:'#27272f', violet:'#7c5cff', ice:'#4aa3ff' }
+}}}
+</script>
+<style>
+  body { background:#09090b; color:#f4f4f5; }
+  #stage { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+  main, header, footer { position:relative; z-index:1; }
+  .veil { background:rgba(9,9,11,.86); backdrop-filter:blur(6px); }
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, video:focus-visible { outline:2px solid #7c5cff; outline-offset:3px; }
+
+  /* 3D tilt cards */
+  .tilt-scene { perspective:1000px; }
+  .tilt { transform-style:preserve-3d; transition:transform .25s ease-out, box-shadow .25s; position:relative; background:#101015; border:1px solid #27272f; border-radius:18px; }
+  .tilt.live { transition:transform .06s linear, box-shadow .25s; box-shadow:0 30px 60px -25px #7c5cff66, 0 0 0 1px #7c5cff55; }
+  .tilt::before { content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:2; opacity:0; transition:opacity .25s;
+    background:radial-gradient(260px circle at var(--mx,50%) var(--my,0%), rgba(255,255,255,.09), transparent 60%); }
+  .tilt.live::before { opacity:1; }
+  .lift { transform:translateZ(28px); }
+
+  .video-wrap { position:relative; background:#000; border-radius:12px; overflow:hidden; aspect-ratio:9/16; }
+  .video-wrap video { width:100%; height:100%; object-fit:contain; display:block; }
+  .video-fallback { position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:.5rem; text-align:center; padding:1.5rem; color:#71717a; font-size:.8rem; pointer-events:none;
+    background:repeating-linear-gradient(135deg,#0d0d12,#0d0d12 14px,#121218 14px,#121218 28px); }
+  .video-wrap.missing .video-fallback { display:flex; }
+
+  .row { transition:background .2s, padding .2s; }
+  .row:hover { background:rgba(124,92,255,.06); }
+  .field { background:transparent; border-bottom:1px solid #3a3a45; padding:.75rem 0; width:100%; outline:none; transition:border-color .2s; }
+  .field:focus { border-color:#7c5cff; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto; } .tilt, .tilt.live { transition:none; } }
+</style>
+</head>
+<body class="font-sans antialiased">
+<canvas id="stage" aria-hidden="true"></canvas>
+
+<header class="fixed top-0 inset-x-0 z-50 border-b border-line/70 bg-bg/70 backdrop-blur-md">
+  <nav class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between" aria-label="Main">
+    <a href="#top" class="font-bold tracking-tight">Steffan <span class="text-zinc-500 font-light hidden sm:inline">| AI &amp; Video Systems</span></a>
+    <ul class="hidden md:flex items-center gap-8 text-sm text-zinc-400">
+      <li><a class="hover:text-white transition" href="#about">About</a></li>
+      <li><a class="hover:text-white transition" href="#skills">Skills</a></li>
+      <li><a class="hover:text-white transition" href="#video">Video Portfolio (AI UGC)</a></li>
+      <li><a class="hover:text-white transition" href="#projects">Projects</a></li>
+      <li><a class="hover:text-white transition" href="#contact">Contact</a></li>
+    </ul>
+    <button id="menuBtn" class="md:hidden p-2" aria-label="Toggle menu" aria-expanded="false"><i data-lucide="menu"></i></button>
+  </nav>
+  <div id="mobileMenu" class="hidden md:hidden border-t border-line bg-bg">
+    <ul class="px-5 py-2 flex flex-col text-zinc-300">
+      <li><a class="block py-3" href="#about">About</a></li>
+      <li><a class="block py-3" href="#skills">Skills</a></li>
+      <li><a class="block py-3" href="#video">Video Portfolio (AI UGC)</a></li>
+      <li><a class="block py-3" href="#projects">Projects</a></li>
+      <li><a class="block py-3" href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO: the 3D scene (three reel panels linked by a pipeline ring) sits behind/right of the text -->
+<section class="min-h-[100svh] flex items-start lg:items-center pt-28 pb-16">
+  <div class="max-w-6xl mx-auto px-5 w-full">
+    <div class="max-w-2xl">
+      <h1 class="text-[2.6rem] sm:text-6xl font-bold tracking-tight leading-[1.04]">AI Automation Specialist, Full-Stack Developer &amp; AI UGC Creator.</h1>
+      <p class="mt-6 text-lg text-zinc-400 max-w-lg leading-relaxed">Engineering high-converting digital assets, scalable web systems, and automated video content engines.</p>
+      <div class="mt-9 flex flex-wrap gap-3">
+        <a href="#video" class="bg-white text-black hover:bg-zinc-200 transition rounded-full px-6 py-3 font-medium inline-flex items-center gap-2"><i data-lucide="play" class="w-4 h-4"></i>View My Video Work</a>
+        <a href="#contact" class="border border-zinc-600 hover:border-white transition rounded-full px-6 py-3 font-medium">Contact Me</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="about" class="veil border-t border-line py-24">
+  <div class="max-w-6xl mx-auto px-5 grid md:grid-cols-[320px_1fr] gap-12 items-center">
+    <div class="tilt-scene max-w-xs mx-auto md:mx-0 w-full">
+      <div class="tilt p-3"><img src="assets/images/steffan.jpg" alt="Steffan" class="lift w-full aspect-[4/5] object-cover rounded-xl" loading="lazy"></div>
+    </div>
+    <div>
+      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight max-w-md">I build the system, not just the asset.</h2>
+      <div class="mt-6 space-y-4 text-zinc-400 leading-relaxed max-w-prose">
+        <p>I'm Steffan. I design AI content pipelines that turn one product brief into a batch of finished video ads, and I build the web and automation layers that put them in front of customers.</p>
+        <p>My work sits where three skills meet: modular prompting for believable AI UGC, workflow automation that replaces manual busywork, and full-stack development that ships fast.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="skills" class="veil border-t border-line py-24">
+  <div class="max-w-6xl mx-auto px-5">
+    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight">Core competencies</h2>
+    <div class="mt-12 border-t border-line">
+      <div class="row grid md:grid-cols-[1fr_1.4fr] gap-4 py-8 border-b border-line px-2">
+        <h3 class="text-xl font-semibold flex items-center gap-3"><i data-lucide="clapperboard" class="text-violet"></i>AI UGC Content &amp; Video Pipelines</h3>
+        <div><p class="text-zinc-400">Modular prompts for consistent creators, scenes and voices, assembled in CapCut and cleaned up for release.</p><p class="mt-3 font-mono text-xs text-zinc-500">Modular Prompts, CapCut Assembly, Watermark Removal</p></div>
+      </div>
+      <div class="row grid md:grid-cols-[1fr_1.4fr] gap-4 py-8 border-b border-line px-2">
+        <h3 class="text-xl font-semibold flex items-center gap-3"><i data-lucide="workflow" class="text-ice"></i>AI Automation &amp; Workflows</h3>
+        <div><p class="text-zinc-400">Agents and workflows that answer customers, route leads and trigger tasks without anyone watching.</p><p class="mt-3 font-mono text-xs text-zinc-500">n8n, Meta WhatsApp API, Telegram API</p></div>
+      </div>
+      <div class="row grid md:grid-cols-[1fr_1.4fr] gap-4 py-8 border-b border-line px-2">
+        <h3 class="text-xl font-semibold flex items-center gap-3"><i data-lucide="layout-template" class="text-violet"></i>Full-Stack Web Development</h3>
+        <div><p class="text-zinc-400">Fast, responsive sites and apps with a repeatable deployment workflow.</p><p class="mt-3 font-mono text-xs text-zinc-500">Next.js, Tailwind CSS, Vercel</p></div>
+      </div>
+      <div class="row grid md:grid-cols-[1fr_1.4fr] gap-4 py-8 border-b border-line px-2">
+        <h3 class="text-xl font-semibold flex items-center gap-3"><i data-lucide="terminal" class="text-ice"></i>Python &amp; Technical Environments</h3>
+        <div><p class="text-zinc-400">Scripts that connect APIs, process files in bulk and automate the repetitive parts of a pipeline.</p><p class="mt-3 font-mono text-xs text-zinc-500">Scripting, REST APIs</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="video" class="veil border-t border-line py-24">
+  <div class="max-w-6xl mx-auto px-5">
+    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight">Video Portfolio: AI UGC</h2>
+    <p class="mt-4 text-zinc-400 max-w-2xl leading-relaxed">Each ad is built from a 3-part modular prompt: a <b class="text-zinc-200 font-medium">Creator</b> prompt (who is on screen), a <b class="text-zinc-200 font-medium">Scene</b> prompt (what happens and where), and a <b class="text-zinc-200 font-medium">Voice &amp; Hook</b> prompt (what they say and how). Change one part and the other two stay consistent.</p>
+
+    <!-- Put your files in assets/videos/ with the names below, or change src to a cloud URL. Optional: poster="assets/images/thumb.jpg" -->
+    <div class="tilt-scene mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-7">
+      <article class="tilt p-4">
+        <div class="video-wrap lift">
+          <video controls preload="metadata" playsinline class="w-full rounded-xl" src="assets/videos/funngro-ad.mp4"></video>
+          <div class="video-fallback"><i data-lucide="film"></i><span>Add your file: replace<br><code class="text-violet">src="assets/videos/funngro-ad.mp4"</code></span></div>
+        </div>
+        <h3 class="mt-5 font-semibold text-lg">Funngro 30s AI UGC Ad Pipeline</h3>
+        <p class="mt-1.5 text-sm text-zinc-400 leading-relaxed">Creator: relatable student persona. Scene: phone-in-hand desk setup. Voice &amp; Hook: problem-first opener leading into the offer.</p>
+      </article>
+      <article class="tilt p-4">
+        <div class="video-wrap lift">
+          <video controls preload="metadata" playsinline class="w-full rounded-xl" src="assets/videos/product-demo.mp4"></video>
+          <div class="video-fallback"><i data-lucide="film"></i><span>Add your file: replace<br><code class="text-violet">src="assets/videos/product-demo.mp4"</code></span></div>
+        </div>
+        <h3 class="mt-5 font-semibold text-lg">Product Demo Reel, 15s</h3>
+        <p class="mt-1.5 text-sm text-zinc-400 leading-relaxed">Creator: friendly reviewer. Scene: close-up product handling. Voice &amp; Hook: one benefit, one proof point, one call to action.</p>
+      </article>
+      <article class="tilt p-4">
+        <div class="video-wrap lift">
+          <video controls preload="metadata" playsinline class="w-full rounded-xl" src="assets/videos/testimonial.mp4"></video>
+          <div class="video-fallback"><i data-lucide="film"></i><span>Add your file: replace<br><code class="text-violet">src="assets/videos/testimonial.mp4"</code></span></div>
+        </div>
+        <h3 class="mt-5 font-semibold text-lg">Testimonial-Style Ad</h3>
+        <p class="mt-1.5 text-sm text-zinc-400 leading-relaxed">Creator: everyday customer. Scene: casual home setting. Voice &amp; Hook: a before-and-after story in the first three seconds.</p>
+      </article>
+    </div>
+    <p class="mt-6 text-sm text-zinc-500">Copy any card to add more videos.</p>
+  </div>
+</section>
+
+<section id="projects" class="veil border-t border-line py-24">
+  <div class="max-w-6xl mx-auto px-5">
+    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight">Featured systems</h2>
+    <div class="mt-12 border-t border-line">
+      <a href="#video" class="row block border-b border-line py-9 px-2">
+        <div class="grid md:grid-cols-[1.1fr_1.4fr_auto] gap-4 md:items-center">
+          <h3 class="text-2xl font-semibold">Automated AI UGC Video Engine</h3>
+          <p class="text-zinc-400">A repeatable pipeline from product brief to finished short-form ad: modular prompts, generation, CapCut assembly, watermark cleanup and export.</p>
+          <p class="font-mono text-xs text-zinc-500 md:text-right">Prompts / CapCut / Python</p>
+        </div>
+      </a>
+      <a href="#contact" class="row block border-b border-line py-9 px-2">
+        <div class="grid md:grid-cols-[1.1fr_1.4fr_auto] gap-4 md:items-center">
+          <h3 class="text-2xl font-semibold">Peak Flow AI Business Automation Agents</h3>
+          <p class="text-zinc-400">AI agents that handle customer chats, qualify leads and alert the team across WhatsApp and Telegram, orchestrated in n8n.</p>
+          <p class="font-mono text-xs text-zinc-500 md:text-right">n8n / WhatsApp / Telegram</p>
+        </div>
+      </a>
+      <a href="#" class="row block border-b border-line py-9 px-2">
+        <div class="grid md:grid-cols-[1.1fr_1.4fr_auto] gap-4 md:items-center">
+          <h3 class="text-2xl font-semibold">Responsive Web &amp; UI Deployments</h3>
+          <p class="text-zinc-400">Mobile-first sites and interfaces built with Next.js and Tailwind, shipped to Vercel. Link your live projects here.</p>
+          <p class="font-mono text-xs text-zinc-500 md:text-right">Next.js / Tailwind / Vercel</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="veil border-t border-line py-24">
+  <div class="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center gap-8 sm:gap-12">
+    <img src="assets/images/sonakshi.jpg" alt="Sonakshi, my AI assistant" class="w-40 h-40 sm:w-48 sm:h-48 rounded-full object-cover ring-2 ring-violet/60 shadow-[0_0_60px_-10px_#7c5cff]" loading="lazy">
+    <div class="text-center sm:text-left">
+      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight">Talk to Sonakshi, my AI assistant.</h2>
+      <p class="mt-4 text-zinc-400 max-w-lg leading-relaxed">Ask about my video work, automation projects or pricing, and she'll point you in the right direction.</p>
+      <p class="mt-3 text-sm text-amber-300 inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-300"></span>Going live on 28 October 2026</p>
+      <div class="mt-7"><button id="openChat" class="bg-white text-black hover:bg-zinc-200 transition rounded-full px-7 py-3 font-medium inline-flex items-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i>Chat with my AI assistant Sonakshi</button></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="veil border-t border-line py-8">
+  <div class="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row justify-between gap-3 text-sm text-zinc-500">
+    <p>&copy; <span id="year"></span> Steffan. AI &amp; Video Systems.</p>
+    <a href="#top" class="hover:text-white transition">Back to top</a>
+  </div>
+</footer>
+
+<div id="chatModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-5 bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
+  <div class="w-full max-w-md rounded-2xl border border-line bg-[#101015] overflow-hidden shadow-[0_40px_80px_-30px_#7c5cff88]">
+    <div class="flex items-center gap-3 px-4 py-3 border-b border-line">
+      <img src="assets/images/sonakshi.jpg" alt="" class="w-10 h-10 rounded-full object-cover">
+      <div class="flex-1"><p id="chatTitle" class="font-semibold leading-tight">Sonakshi</p><p class="text-xs text-zinc-500">AI assistant</p></div>
+      <button id="closeChat" class="p-2 text-zinc-400 hover:text-white" aria-label="Close chat"><i data-lucide="x"></i></button>
+    </div>
+    <div class="p-5 space-y-3 min-h-[200px]">
+      <div class="max-w-[85%] rounded-2xl rounded-tl-sm bg-white/5 border border-line px-4 py-3 text-sm leading-relaxed">Hi, I'm Sonakshi, Steffan's AI assistant.</div>
+      <div class="max-w-[85%] rounded-2xl rounded-tl-sm bg-violet/15 border border-violet/40 px-4 py-3 text-sm leading-relaxed">I'm not live yet. I'll be live on <b>28 October 2026</b>. Please check back then.</div>
+    </div>
+    <div class="flex items-center gap-2 px-4 py-3 border-t border-line">
+      <input disabled placeholder="Available from 28 Oct 2026" aria-label="Message (not available yet)" class="flex-1 bg-transparent text-sm text-zinc-500 placeholder-zinc-600 cursor-not-allowed outline-none">
+      <button disabled class="p-2 rounded-full bg-zinc-800 text-zinc-600 cursor-not-allowed" aria-label="Send (not available yet)"><i data-lucide="send" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+</div>
+
+<script>
+lucide.createIcons();
+
+/* VIDEO LINKS: paste the direct Cloudinary video URL for each card (1st, 2nd, 3rd).
+   Format: https://res.cloudinary.com/zoy1c1ni/video/upload/YOUR_PUBLIC_ID.mp4
+   Leave '' to use the local file in assets/videos/ instead. */
+const VIDEO_URLS = [
+  'https://res.cloudinary.com/zoy1c1ni/video/upload/lv_0_20261004182345.mp4',
+  'https://res.cloudinary.com/zoy1c1ni/video/upload/lv_0_20261004190048.mp4',
+  'https://res.cloudinary.com/zoy1c1ni/video/upload/lv_0_20261006204346.mp4'
+];
+document.querySelectorAll('.video-wrap video').forEach((v, i) => { if (VIDEO_URLS[i]) v.src = VIDEO_URLS[i]; });
+document.getElementById('year').textContent = new Date().getFullYear();
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Mobile menu */
+const btn = document.getElementById('menuBtn'), menu = document.getElementById('mobileMenu');
+btn.onclick = () => btn.setAttribute('aria-expanded', !menu.classList.toggle('hidden'));
+menu.querySelectorAll('a').forEach(a => a.onclick = () => { menu.classList.add('hidden'); btn.setAttribute('aria-expanded', false); });
+
+/* Video: placeholder when missing, one plays at a time */
+const vids = document.querySelectorAll('.video-wrap video');
+vids.forEach(v => {
+  v.addEventListener('error', () => v.closest('.video-wrap').classList.add('missing'));
+  v.addEventListener('loadedmetadata', () => v.closest('.video-wrap').classList.remove('missing'));
+  v.addEventListener('play', () => vids.forEach(o => o !== v && o.pause()));
+});
+
+/* 3D tilt on video cards (mouse only) */
+if (matchMedia('(hover:hover)').matches && !reduce) {
+  document.querySelectorAll('.tilt').forEach(c => {
+    c.addEventListener('mousemove', e => {
+      const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      c.classList.add('live');
+      c.style.setProperty('--mx', x * 100 + '%'); c.style.setProperty('--my', y * 100 + '%');
+      c.style.transform = `rotateX(${(0.5 - y) * 8}deg) rotateY(${(x - 0.5) * 10}deg) translateZ(0)`;
+    });
+    c.addEventListener('mouseleave', () => { c.classList.remove('live'); c.style.transform = ''; });
+  });
+}
+
+/* Sonakshi chat notice */
+const modal = document.getElementById('chatModal'), openBtn = document.getElementById('openChat'), closeBtn = document.getElementById('closeChat');
+function setChat(open) {
+  modal.classList.toggle('hidden', !open); modal.classList.toggle('flex', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+  (open ? closeBtn : openBtn).focus();
+}
+openBtn.onclick = () => setChat(true);
+closeBtn.onclick = () => setChat(false);
+modal.addEventListener('click', e => { if (e.target === modal) setChat(false); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) setChat(false); });
+
+/* ---------- 3D scene ---------- */
+(function () {
+  if (!window.THREE) return;
+  const canvas = document.getElementById('stage');
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); } catch (e) { return; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  camera.position.set(0, 0, 8);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  const l1 = new THREE.PointLight(0x7c5cff, 2.2, 30); l1.position.set(-4, 3, 5); scene.add(l1);
+  const l2 = new THREE.PointLight(0x4aa3ff, 2.0, 30); l2.position.set(4, -2, 5); scene.add(l2);
+
+  // Reel-style screen texture drawn on canvas
+  function reelTexture(h1, h2) {
+    const c = document.createElement('canvas'); c.width = 256; c.height = 456;
+    const g = c.getContext('2d');
+    const bg = g.createLinearGradient(0, 0, 256, 456); bg.addColorStop(0, h1); bg.addColorStop(1, h2);
+    g.fillStyle = bg; g.fillRect(0, 0, 256, 456);
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, 0, 256, 456);
+    g.fillStyle = 'rgba(255,255,255,.14)'; g.beginPath(); g.arc(128, 170, 54, 0, 7); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.moveTo(116, 148); g.lineTo(116, 192); g.lineTo(152, 170); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(24, 330, 150, 10); g.fillStyle = 'rgba(255,255,255,.4)'; g.fillRect(24, 350, 200, 8); g.fillRect(24, 366, 120, 8);
+    g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(24, 410, 208, 4); g.fillStyle = '#fff'; g.fillRect(24, 410, 90, 4);
+    const t = new THREE.CanvasTexture(c); t.anisotropy = 4; return t;
+  }
+
+  const group = new THREE.Group(); scene.add(group);
+  const bodyGeo = new THREE.BoxGeometry(1.15, 2.05, 0.06), edgeGeo = new THREE.EdgesGeometry(bodyGeo), screenGeo = new THREE.PlaneGeometry(1.05, 1.95);
+  const defs = [
+    { p: [-1.9, -0.25, -0.3], r: 0.4,  c: ['#5b3df5', '#0b0b1a'], e: 0x7c5cff },
+    { p: [0, 0.3, 0.5],       r: 0,    c: ['#2b7de9', '#0b0b1a'], e: 0x4aa3ff },
+    { p: [1.9, -0.15, -0.2],  r: -0.4, c: ['#7c5cff', '#101a33'], e: 0x7c5cff }
+  ];
+  const panels = defs.map((d, i) => {
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({ color: 0x15151c, metalness: 0.7, roughness: 0.3 })));
+    g.add(new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({ color: d.e })));
+    const s = new THREE.Mesh(screenGeo, new THREE.MeshBasicMaterial({ map: reelTexture(d.c[0], d.c[1]) })); s.position.z = 0.035; g.add(s);
+    g.position.set(...d.p); g.rotation.y = d.r; g.userData = { y0: d.p[1], i }; group.add(g); return g;
+  });
+
+  // Pipeline ring + orbiting node
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(3.1, 0.012, 8, 160), new THREE.MeshBasicMaterial({ color: 0x4aa3ff, transparent: true, opacity: 0.55 }));
+  ring.rotation.x = 1.25; group.add(ring);
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(2.5, 0.008, 8, 120), new THREE.MeshBasicMaterial({ color: 0x7c5cff, transparent: true, opacity: 0.4 }));
+  ring2.rotation.set(1.2, 0.5, 0); group.add(ring2);
+  const node = new THREE.Mesh(new THREE.IcosahedronGeometry(0.16, 1), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x7c5cff, emissiveIntensity: 1.2, flatShading: true }));
+  group.add(node);
+
+  // Depth particles
+  const N = innerWidth < 768 ? 350 : 800, pos = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) { pos[i*3] = (Math.random()-.5)*26; pos[i*3+1] = (Math.random()-.5)*16; pos[i*3+2] = (Math.random()-.5)*18 - 4; }
+  const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const stars = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x9aa0ff, size: 0.035, transparent: true, opacity: 0.7 }));
+  scene.add(stars);
+
+  let W, H, base = { x: 0, y: 0, s: 1 };
+  function size() {
+    W = innerWidth; H = innerHeight; renderer.setSize(W, H, false); camera.aspect = W / H; camera.updateProjectionMatrix();
+    base = W >= 1024 ? { x: 2.6, y: 0, s: 1 } : W >= 640 ? { x: 0, y: -1.5, s: 0.8 } : { x: 0, y: -1.9, s: 0.55 };
+  }
+  addEventListener('resize', () => { size(); if (reduce) draw(0); }); size();
+
+  let mx = 0, my = 0, sx = 0, sy = 0, scroll = 0;
+  addEventListener('pointermove', e => { mx = e.clientX / W - 0.5; my = e.clientY / H - 0.5; });
+  addEventListener('scroll', () => { scroll = scrollY / Math.max(1, document.body.scrollHeight - H); }, { passive: true });
+
+  function draw(t) {
+    sx += (mx - sx) * 0.05; sy += (my - sy) * 0.05;
+    const fade = Math.max(0, 1 - scrollY / (H * 0.9));           // hero scene recedes as you scroll
+    const k = Math.min(1, scrollY / H);
+    group.position.x = base.x + (base.x ? -k * 1.4 : 0);
+    group.position.y = base.y + k * 1.2;
+    group.position.z = -k * 2.5;
+    group.scale.setScalar(base.s * (1 - k * 0.15));
+    group.rotation.y = sx * 0.7 + t * 0.00008 * 60 * 0 + Math.sin(t * 0.0004) * 0.15 + scroll * 4;
+    group.rotation.x = sy * 0.35;
+    panels.forEach(p => { p.position.y = p.userData.y0 + Math.sin(t * 0.001 + p.userData.i * 1.7) * 0.12; });
+    ring.rotation.z = t * 0.0002; ring2.rotation.z = -t * 0.00026;
+    node.position.set(Math.cos(t * 0.0009) * 3.1, Math.sin(t * 0.0009) * 3.1 * Math.cos(1.25), Math.sin(t * 0.0009) * 3.1 * Math.sin(1.25));
+    node.rotation.y = t * 0.002;
+    stars.rotation.y = t * 0.00003 + scroll * 0.6; stars.position.y = scroll * 3;
+    canvas.style.opacity = 0.18 + 0.82 * fade;
+    renderer.render(scene, camera);
+  }
+  if (reduce) draw(0);
+  else (function loop(t) { draw(t); requestAnimationFrame(loop); })(0);
+})();
+</script>
+</body>
+</html>
